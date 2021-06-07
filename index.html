@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/particle-api-js@8/dist/particle.min.js"></script>
+    </head>
+    <body>
+        <style>
+            label {
+            display:block;  
+            }
+            *{
+                text-align: center;
+            }
+        </style>
+
+        <h1>Wi-Fan Web Control</h1>
+        <p>Select or Add an option below to get started...</p>
+        
+        <b><p>Add New Action</p></b>
+        <input id="nameValue" placeholder="Action Name"></input><br>
+        <input id="irValue" placeholder="IR Value"></input>
+        <button>Get IR Value</button><br><br>
+        <button onClick="btnAdd()">Add Function</button>
+        
+
+        <b><p>Current Functions:</p></b>
+        <div id="result"></div><br>
+        <button id="executeAction">Execute Action</button>
+        <br>
+        <br>
+        <p><span id="statusSpan"></span></p>
+        <script>
+            var particle = new Particle();
+
+            const accessToken = '1a5493cf469e5b5d3489914d54cb5eb7918c2f58';
+            const deviceId = 'e00fce68214ad2d7762bedce';
+            
+
+            // var _functions = {
+            //                 "Fan Speed Down": 993846, 
+            //                 "Light Off": 29825, 
+            //                 "Fan Speed Up": 29358662, 
+            //                 "Light On": 9760934
+            //                 };
+            
+            function displayKeys(){
+                var result = $('#result');
+                result.html('');
+
+                const keys = Object.keys(_functions);
+
+                for (const [key, value] of Object.entries(_functions)) {
+                    result.append('<label><input type="radio" name="functions" value="' + value + '" /> ' + key + '</label>')
+                }
+            }
+            displayKeys();
+
+            function btnScan(){
+                var arrayVals = ["0xFF02FD", "0xFFC23D", "0xFFE21D"];
+                $('#irValue').value = arrayVals[0];
+            }
+
+            function btnAdd(){
+                var name = document.getElementById('nameValue').value;
+                var value = document.getElementById('irValue').value;
+
+                if(name.length == 0 || value.length == 0){
+                    console.log("No values entered");
+                }else{
+                    _functions[name] = parseInt(value);
+                    displayKeys();
+                }
+            }
+
+            function sendData(value){
+                document.getElementById("statusSpan").innerHTML = '';
+
+                particle.callFunction({deviceId, name:'executeAction', argument: value, auth:accessToken}).then(
+                function(data) {
+                    document.getElementById("statusSpan").innerHTML = 'Call completed';
+                },
+                function(err) {
+                    document.getElementById("statusSpan").innerHTML = 'Error calling device: ' + err;
+                }
+            )};
+
+            $('#result').on('change', 'input', function() {
+                var elem = $(this);
+                if (elem.is(':checked')) {
+                    document.getElementById('executeAction').onclick = function() {sendData(elem.val())};
+                }
+            });
+        </script>
+    </body>
+</html>
